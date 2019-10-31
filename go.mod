@@ -1,4 +1,4 @@
-module gosdk
+module github.com/tangshanshan1998/gosdk
 
 go 1.12
 

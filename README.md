@@ -20,7 +20,7 @@ github.com/tangshanshan1998/gosdk latest
 # 执行go mod vendor
 go mod vendor
 ```
-
+# 本包还依赖github.com/dgrijalva/jwt-go
 ### 基本使用
 
 ```
