@@ -57,7 +57,7 @@ func GetClientInstance(header http.Header) (*client, *CommError) {
 		err = clientInstance.parseTokenInfo(header)
 		clientInstance.initBaseInfo()
 	})
-
+	err = clientInstance.parseTokenInfo(header)
 	clientInstance.header = header
 	return clientInstance, err
 }
