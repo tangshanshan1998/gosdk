@@ -322,15 +322,13 @@ func (client *client) GetChannelDataFromEnv(appid, channelAlias string) *CommErr
 
 func (client *client) claimsForThisRequest() MyClaimsForRequest {
 	client.generateStackRecord()
-	fromChannel, _ := strconv.Atoi(client.currentInfo["channel"])
-	channel, _ := strconv.Atoi(client.targetInfo["channel"])
 	claims := MyClaimsForRequest{
 		client.currentInfo["appid"],
 		client.currentInfo["appkey"],
-		fromChannel,
+		client.currentInfo["channel"],
 		client.targetInfo["appid"],
 		client.targetInfo["appkey"],
-		channel,
+		client.targetInfo["channel"],
 		client.targetInfo["alias"],
 		client.accountId,
 		client.subOrgKey,

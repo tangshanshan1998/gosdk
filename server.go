@@ -28,7 +28,7 @@ func GetServerInstance(header http.Header) *server {
 }
 
 func (server *server) GetTokenData() map[string]interface{} {
-	if server.token != nil {
+	if server.token == nil {
 		return nil
 	}
 	if tokenData == nil {
