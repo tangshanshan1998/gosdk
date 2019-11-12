@@ -253,7 +253,10 @@ func (client *client) Call(serviceName string,
 		contentType = CONTENT_TYPE_FORM
 	}
 	client.targetInfo["appid"] = serviceName
-	client.GetChannelDataFromEnv(serviceName, channelAlias)
+	err:=client.GetChannelDataFromEnv(serviceName, channelAlias)
+	if err!=nil{
+		return nil,err
+	}
 	claims := client.claimsForThisRequest()
 	client.makeToken(claims)
 	if data == nil {
@@ -264,20 +267,44 @@ func (client *client) Call(serviceName string,
 
 var channelDatas = make(map[string]interface{})
 
-func (client *client) GetChannelDataFromEnv(appid, channelAlias string) {
+func (client *client) GetChannelDataFromEnv(appid, channelAlias string) *CommError {
 	if _, ok := channelDatas[client.currentInfo["appkey"]]; !ok {
 		channelEnv := os.Getenv(DATA_CHANNEL)
 		channelEnv = strings.Trim(channelEnv, `'`)
 		if channelEnv != "" {
 			channelEnvByte := []byte(channelEnv)
 			json.Unmarshal(channelEnvByte, &channelDatas)
+		} else {
+			return &CommError{403, "IDG_CHANNELS is empty"}
 		}
 	}
-	appData := channelDatas[client.currentInfo["appkey"]].(map[string]interface{})
-	appData = appData[client.currentInfo["channel"]].(map[string]interface{})
-	appData = appData[appid].(map[string]interface{})
-	appData = appData[channelAlias].(map[string]interface{})
-	appkey := appData["target_appkey"].(string)
+	appData := map[string]interface{}{}
+	appkey := ""
+	if value, ok := channelDatas[client.currentInfo["appkey"]]; fmt.Sprintf("%T", value) == "map[string]interface {}" && ok {
+		appData = channelDatas[client.currentInfo["appkey"]].(map[string]interface{})
+	} else {
+		return &CommError{403, "IDG_CHANNELS parse fail:appkey"}
+	}
+	if value, ok := appData[client.currentInfo["channel"]]; fmt.Sprintf("%T", value) == "map[string]interface {}" && ok {
+		appData = appData[client.currentInfo["channel"]].(map[string]interface{})
+	} else {
+		return &CommError{403, "IDG_CHANNELS parse fail:channel"}
+	}
+	if value, ok := appData[appid]; fmt.Sprintf("%T", value) == "map[string]interface {}" && ok {
+		appData = appData[appid].(map[string]interface{})
+	} else {
+		return &CommError{403, "IDG_CHANNELS parse fail:to_appid"}
+	}
+	if value, ok := appData[channelAlias]; fmt.Sprintf("%T", value) == "map[string]interface {}" && ok {
+		appData = appData[channelAlias].(map[string]interface{})
+	} else {
+		return &CommError{403, "IDG_CHANNELS parse fail:to_channelAlias"}
+	}
+	if value, ok := appData["target_appkey"]; fmt.Sprintf("%T", value) == "string" && ok {
+		appkey = appData[channelAlias].(string)
+	} else {
+		return &CommError{403, "IDG_CHANNELS parse fail:target_appkey"}
+	}
 	appchannel := strconv.FormatFloat(appData["target_channel"].(float64), 'f', -1, 64)
 	client.targetInfo = generateStackRow(
 		appid,
@@ -285,6 +312,7 @@ func (client *client) GetChannelDataFromEnv(appid, channelAlias string) {
 		appchannel,
 		channelAlias,
 		"")
+	return nil
 }
 
 func (client *client) claimsForThisRequest() MyClaimsForRequest {
