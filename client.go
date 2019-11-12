@@ -279,6 +279,7 @@ func (client *client) GetChannelDataFromEnv(appid, channelAlias string) *CommErr
 		}
 	}
 	appData := map[string]interface{}{}
+	var appchannel string
 	appkey := ""
 	if value, ok := channelDatas[client.currentInfo["appkey"]]; fmt.Sprintf("%T", value) == "map[string]interface {}" && ok {
 		appData = channelDatas[client.currentInfo["appkey"]].(map[string]interface{})
@@ -301,11 +302,15 @@ func (client *client) GetChannelDataFromEnv(appid, channelAlias string) *CommErr
 		return &CommError{403, "IDG_CHANNELS parse fail:to_channelAlias"}
 	}
 	if value, ok := appData["target_appkey"]; fmt.Sprintf("%T", value) == "string" && ok {
-		appkey = appData[channelAlias].(string)
+		appkey = appData["target_appkey"].(string)
 	} else {
 		return &CommError{403, "IDG_CHANNELS parse fail:target_appkey"}
 	}
-	appchannel := strconv.FormatFloat(appData["target_channel"].(float64), 'f', -1, 64)
+	if value, ok := appData["target_channel"]; fmt.Sprintf("%T", value) == "float64" && ok {
+		appchannel = strconv.FormatFloat(appData["target_channel"].(float64), 'f', -1, 64)
+	} else {
+		return &CommError{403, "IDG_CHANNELS parse fail:target_channel"}
+	}
 	client.targetInfo = generateStackRow(
 		appid,
 		appkey,
