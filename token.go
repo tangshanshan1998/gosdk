@@ -33,12 +33,9 @@ func GetAppInfoByToken(tokenString string) (map[string]interface{}, *CommError) 
 	if tokenString == "" {
 		return nil,&CommError{204,"token is empty"}
 	}
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (i interface{}, e error) {
+	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (i interface{}, e error) {
 		return token, nil
 	})
-	if err!=nil{
-		return nil,&CommError{204,"token is not valid"}
-	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		tokenData = make(map[string]interface{})
 		for key, value := range claims {

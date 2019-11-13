@@ -17,14 +17,10 @@ var tokenData = map[string]interface{}{}
 
 func GetServerInstance(header http.Header) (*server, *CommError) {
 	token1 := GetBearerToken(header)
-	var err error
 	if token1 != "" {
-		serverInstance.token, err = jwt.Parse(token1, func(token *jwt.Token) (i interface{}, e error) {
+		serverInstance.token, _ = jwt.Parse(token1, func(token *jwt.Token) (i interface{}, e error) {
 			return token, nil
 		})
-		if err!=nil{
-			return nil,&CommError{204,"token is not valid"}
-		}
 		if _, ok := serverInstance.token.Claims.(jwt.MapClaims); ok {
 			serverInstance.tokenExist = true
 		}else{
