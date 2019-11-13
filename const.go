@@ -82,10 +82,10 @@ type fileStruct struct {
 type MyClaimsForRequest struct {
 	FromAppid   string              `json:"from_appid"`
 	FromAppkey  string              `json:"from_appkey"`
-	FromChannel string                 `json:"from_channel"`
+	FromChannel string              `json:"from_channel"`
 	Appid       string              `json:"appid"`
 	Appkey      string              `json:"appkey"`
-	Channel     string                 `json:"channel"`
+	Channel     string              `json:"channel"`
 	Alias       string              `json:"alias"`
 	AccountId   string              `json:"account_id"`
 	SubOrgKey   string              `json:"sub_org_key"`

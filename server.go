@@ -12,7 +12,7 @@ type server struct {
 
 var serverInstance = &server{tokenExist: false}
 
-var tokenData map[string]interface{}
+var tokenData = map[string]interface{}{}
 
 func GetServerInstance(header http.Header) *server {
 	token1 := GetBearerToken(header)
@@ -31,15 +31,15 @@ func (server *server) GetTokenData() map[string]interface{} {
 	if server.token == nil {
 		return nil
 	}
-	if tokenData == nil {
-		tokenData = make(map[string]interface{})
-		claims, err := server.token.Claims.(jwt.MapClaims)
-		if err {
-			for key, value := range claims {
-				tokenData[key] = value
-			}
+
+	tokenData = make(map[string]interface{})
+	claims, err := server.token.Claims.(jwt.MapClaims)
+	if err {
+		for key, value := range claims {
+			tokenData[key] = value
 		}
 	}
+
 	return tokenData
 }
 

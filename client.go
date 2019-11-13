@@ -82,6 +82,11 @@ func (client *client) parseClaims(claim map[string]interface{}) *CommError {
 				client.currentInfo["appkey"] = claim[TO_APPKEY_KEY].(string)
 				client.currentInfo["channel"] = claim[TO_CHANNEL].(string)
 				flag = true
+			} else if value, ok := claim[TO_CHANNEL]; fmt.Sprintf("%T", value) == "float64" && ok {
+				client.currentInfo["appid"] = claim[TO_APPID_KEY].(string)
+				client.currentInfo["appkey"] = claim[TO_APPKEY_KEY].(string)
+				client.currentInfo["channel"] = strconv.FormatFloat(claim[TO_CHANNEL].(float64), 'f', 0, 64)
+				flag = true
 			}
 		}
 	}
@@ -253,9 +258,9 @@ func (client *client) Call(serviceName string,
 		contentType = CONTENT_TYPE_FORM
 	}
 	client.targetInfo["appid"] = serviceName
-	err:=client.GetChannelDataFromEnv(serviceName, channelAlias)
-	if err!=nil{
-		return nil,err
+	err := client.GetChannelDataFromEnv(serviceName, channelAlias)
+	if err != nil {
+		return nil, err
 	}
 	claims := client.claimsForThisRequest()
 	client.makeToken(claims)
