@@ -29,19 +29,22 @@ func getAuthorizationHeader(header http.Header) (headers string) {
 	return headers
 }
 
-func GetAppInfoByToken(tokenString string) map[string]interface{} {
+func GetAppInfoByToken(tokenString string) (map[string]interface{}, *CommError) {
 	if tokenString == "" {
-		return nil
+		return nil,&CommError{204,"token is empty"}
 	}
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (i interface{}, e error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (i interface{}, e error) {
 		return token, nil
 	})
+	if err!=nil{
+		return nil,&CommError{204,"token is not valid"}
+	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		tokenData = make(map[string]interface{})
 		for key, value := range claims {
 			tokenData[key] = value
 		}
-		return tokenData
+		return tokenData,nil
 	}
-	return nil
+	return nil,&CommError{204,"token format claim error"}
 }

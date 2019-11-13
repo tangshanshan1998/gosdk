@@ -63,12 +63,18 @@ func GetClientInstance(header http.Header) (*client, *CommError) {
 }
 
 func (client *client) parseTokenInfo(header http.Header) *CommError {
-	server := GetServerInstance(header)
-	if server.tokenExist {
-		claim := server.GetTokenData()
-		err := client.parseClaims(claim)
-		client.inited = true
+	server,err := GetServerInstance(header)
+	if err!=nil{
 		return err
+	}
+	if server.tokenExist {
+		claim,err := server.GetTokenData()
+		if err!=nil{
+			return err
+		}
+		err1 := client.parseClaims(claim)
+		client.inited = true
+		return err1
 	}
 	return nil
 }
