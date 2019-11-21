@@ -27,8 +27,10 @@ go mod vendor
 // 获取对象，head是请求的HEAD字段，用来解析HEAD中的Authorization中的token
 client, err:=gosdk.GetClientInstance(head)
 
-// 对Authorization中的token解析，或对SetToken()中token解析，或SetAppInfo()
+// 对Authorization中的token解析，或对SetToken()中token解析
+//一般服务调用时使用token解析
 client, err = client.SetToken(token)
+// 如果调用方是应用，则通过SetAppInfo进行调用方的信息存储，服务不要使用该方法
 client, err = client.SetAppInfo(appid, appkey, channel, version)
 
 // 可以使用SetServices()自定义服务地址，或通过serviceKey从环境变量中寻找服务地址（前者优先级高）
@@ -36,8 +38,13 @@ client, err = client.SetAppInfo(appid, appkey, channel, version)
 client = client.SetServices(services)
 
 // 调用服务
-// serviceKey对应服务地址；method是请求的方法，如post、get；api是具体请求的接口地址；params是要传递的参数，是map[string]interface{}的类型；
-// alias是服务的别名；contentType是请求的格式，如application/x-www-form-urlencoded;file是上传文件时使用，一般为nil。
+// serviceKey对应服务地址，就是中台的appid；
+// method是请求的方法，如post、get；
+// api是具体请求的接口地址；
+// params是要传递的参数，是map[string]interface{}的类型；
+// alias是服务的别名，自己在中台设置的，一般为"default"；
+// contentType是请求的格式，如application/x-www-form-urlencoded;
+// file是上传文件时使用，一般为nil。
 resp, err1 = client.Call(serviceKey, method, api, params, alias, contentType, file)
 
 // resp是服务返回的结果，是[]byte数组，转化为string，优化内存
