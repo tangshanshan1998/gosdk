@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-type client struct {
+type Client struct {
 	header          http.Header
 	services        map[string]string
 	connectTimeout  float64
@@ -36,7 +36,7 @@ type client struct {
 	inited          bool
 }
 
-var clientInstance = &client{
+var clientInstance = &Client{
 	services:       make(map[string]string),
 	connectTimeout: CONNECT_TIMEOUT,
 	timeout:        TIMEOUT,
@@ -51,7 +51,7 @@ var gatewayUrl = ""
 
 var once sync.Once
 
-func GetClientInstance(header http.Header) (*client, *CommError) {
+func GetClientInstance(header http.Header) (*Client, *CommError) {
 	var err *CommError
 	once.Do(func() {
 		err = clientInstance.parseTokenInfo(header)
@@ -62,7 +62,7 @@ func GetClientInstance(header http.Header) (*client, *CommError) {
 	return clientInstance, err
 }
 
-func (client *client) parseTokenInfo(header http.Header) *CommError {
+func (client *Client) parseTokenInfo(header http.Header) *CommError {
 	server,err := GetServerInstance(header)
 	if err!=nil{
 		return err
@@ -79,7 +79,7 @@ func (client *client) parseTokenInfo(header http.Header) *CommError {
 	return nil
 }
 
-func (client *client) parseClaims(claim map[string]interface{}) *CommError {
+func (client *Client) parseClaims(claim map[string]interface{}) *CommError {
 	var flag = false
 	if value, ok := claim[TO_APPID_KEY]; fmt.Sprintf("%T", value) == "string" && ok {
 		if value, ok := claim[TO_APPKEY_KEY]; fmt.Sprintf("%T", value) == "string" && ok {
@@ -122,7 +122,7 @@ func (client *client) parseClaims(claim map[string]interface{}) *CommError {
 	return nil
 }
 
-func (client *client) initBaseInfo() {
+func (client *Client) initBaseInfo() {
 	if gatewayUrl == "" {
 		envGateway := os.Getenv(GATEWAY_SERVICE_KEY)
 		if envGateway != "" {
@@ -132,21 +132,21 @@ func (client *client) initBaseInfo() {
 	}
 }
 
-func (client *client) SetServices(services map[string]string) *client {
+func (client *Client) SetServices(services map[string]string) *Client {
 	for k, v := range services {
 		client.services[k] = strings.TrimRight(v, "/") + "/"
 	}
 	return client
 }
 
-func (client *client) SetAccountId(accountId string) *client {
+func (client *Client) SetAccountId(accountId string) *Client {
 	if accountId != "" {
 		client.accountId = accountId
 	}
 	return client
 }
 
-func (client *client) SetUserInfo(userInfo map[string]string) *client {
+func (client *Client) SetUserInfo(userInfo map[string]string) *Client {
 	if !client.IsCallerApp() {
 		return client
 	}
@@ -159,31 +159,31 @@ func (client *client) SetUserInfo(userInfo map[string]string) *client {
 	return client
 }
 
-func (client *client) IsCallerApp() bool {
+func (client *Client) IsCallerApp() bool {
 	if len(client.callStacks) == 0 {
 		return true
 	}
 	return false
 }
 
-func (client *client) SetConnectTimeout(timeOut float64) *client {
+func (client *Client) SetConnectTimeout(timeOut float64) *Client {
 	client.connectTimeout = timeOut / 1000
 	return client
 }
 
-func (client *client) SetTimeout(timeOut float64) *client {
+func (client *Client) SetTimeout(timeOut float64) *Client {
 	client.timeout = timeOut / 1000
 	return client
 }
 
-func (client *client) SetConcurrency(num int) *client {
+func (client *Client) SetConcurrency(num int) *Client {
 	if num > 0 && num < MAX_CONCURRENCY {
 		client.concurrency = num
 	}
 	return client
 }
 
-func (client *client) SetToken(tokenString string) (*client, *CommError) {
+func (client *Client) SetToken(tokenString string) (*Client, *CommError) {
 	if tokenString == "" {
 		return client, nil
 	}
@@ -213,14 +213,14 @@ func getSigner() *jwt.SigningMethodHMAC {
 	return jwt.SigningMethodHS256
 }
 
-func (client *client) SetSubOrgKey(subOrgKey string) *client {
+func (client *Client) SetSubOrgKey(subOrgKey string) *Client {
 	if subOrgKey != "" {
 		client.subOrgKey = subOrgKey
 	}
 	return client
 }
 
-func (client *client) SetAppInfo(appid string, appkey string, channel string, version string) (*client, *CommError) {
+func (client *Client) SetAppInfo(appid string, appkey string, channel string, version string) (*Client, *CommError) {
 	if !client.IsCallerApp() {
 		return nil, &CommError{CAN_NOT_CALL_THIS_METHOD, "This method can only called by first app"}
 	}
@@ -247,7 +247,7 @@ func generateStackRow(appid, appkey, channel, alias, version string) map[string]
 //channelAlias 	别名，传入空值时为"default"
 //contentType	发送请求的类型，空值为"application/x-www-form-urlencoded"
 //file			要上传的文件
-func (client *client) Call(serviceName string,
+func (client *Client) Call(serviceName string,
 	method string,
 	api string,
 	data map[string]interface{},
@@ -278,7 +278,7 @@ func (client *client) Call(serviceName string,
 
 var channelDatas = make(map[string]interface{})
 
-func (client *client) GetChannelDataFromEnv(appid, channelAlias string) *CommError {
+func (client *Client) GetChannelDataFromEnv(appid, channelAlias string) *CommError {
 	if _, ok := channelDatas[client.currentInfo["appkey"]]; !ok {
 		channelEnv := os.Getenv(DATA_CHANNEL)
 		channelEnv = strings.Trim(channelEnv, `'`)
@@ -331,7 +331,7 @@ func (client *client) GetChannelDataFromEnv(appid, channelAlias string) *CommErr
 	return nil
 }
 
-func (client *client) claimsForThisRequest() MyClaimsForRequest {
+func (client *Client) claimsForThisRequest() MyClaimsForRequest {
 	client.generateStackRecord()
 	claims := MyClaimsForRequest{
 		client.currentInfo["appid"],
@@ -355,27 +355,27 @@ func (client *client) claimsForThisRequest() MyClaimsForRequest {
 	return claims
 }
 
-func (client client) generateStackRecord() []map[string]string {
+func (client Client) generateStackRecord() []map[string]string {
 	tempStack := client.callStacks
 	tempStack = append(tempStack, client.targetInfo)
 	return tempStack
 }
 
-func (client *client) makeToken(claims MyClaimsForRequest) {
+func (client *Client) makeToken(claims MyClaimsForRequest) {
 	client.token = client.MakeToken(claims)
 }
 
-func (client client) MakeToken(claims MyClaimsForRequest) string {
+func (client Client) MakeToken(claims MyClaimsForRequest) string {
 	token := jwt.NewWithClaims(getSigner(), claims)
 	result, _ := token.SignedString([]byte(client.getAppSecret()))
 	return result
 }
 
-func (client client) getAppSecret() string {
+func (client Client) getAppSecret() string {
 	return client.appSecret
 }
 
-func (client *client) Exec(serviceName string,
+func (client *Client) Exec(serviceName string,
 	method string,
 	api string,
 	data map[string]interface{},
@@ -490,7 +490,7 @@ func (client *client) Exec(serviceName string,
 
 }
 
-func (client *client) checkParam(serviceName string,
+func (client *Client) checkParam(serviceName string,
 	method string,
 	data map[string]interface{}) (string, *CommError) {
 	baseUrl, err := client.getServiceUrl(serviceName)
@@ -515,7 +515,7 @@ func (client *client) checkParam(serviceName string,
 var configServices map[string]string
 
 //获取服务的路径
-func (client *client) getServiceUrl(serviceName string) (string, *CommError) {
+func (client *Client) getServiceUrl(serviceName string) (string, *CommError) {
 	//	不是在中台部署的项目可以将项目名和地址存入client.services[]中，已经调用过的服务也会存在该数组中，不用重新查询
 	if client.services[serviceName] != "" {
 		return client.services[serviceName], nil
@@ -587,7 +587,7 @@ func requestError(response *http.Response) ([]byte, *CommError) {
 
 }
 
-func (client *client) CallAsApp(serviceName string,
+func (client *Client) CallAsApp(serviceName string,
 	method string,
 	api string,
 	data map[string]interface{},
@@ -596,7 +596,7 @@ func (client *client) CallAsApp(serviceName string,
 	return client.Exec(serviceName, method, api, data, contentType, multiPart)
 }
 
-func (client *client) CallByChain(chains []map[string]string,
+func (client *Client) CallByChain(chains []map[string]string,
 	method string,
 	api string,
 	data map[string]interface{},
@@ -637,7 +637,7 @@ func (client *client) CallByChain(chains []map[string]string,
 	return client.Exec("gateway_chain", method, api, data, contentType, files)
 }
 
-func (client *client) claimsForChainRequest(stack map[string]string) MyClaimsForChainRequest {
+func (client *Client) claimsForChainRequest(stack map[string]string) MyClaimsForChainRequest {
 	claims := MyClaimsForChainRequest{
 		client.accountId,
 		client.subOrgKey,
@@ -653,18 +653,18 @@ func (client *client) claimsForChainRequest(stack map[string]string) MyClaimsFor
 	return claims
 }
 
-func (client *client) makeTokenByChain(claims MyClaimsForChainRequest) {
+func (client *Client) makeTokenByChain(claims MyClaimsForChainRequest) {
 	client.token = client.MakeTokenByChain(claims)
 }
 
-func (client client) MakeTokenByChain(claims MyClaimsForChainRequest) string {
+func (client Client) MakeTokenByChain(claims MyClaimsForChainRequest) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	result, err := token.SignedString([]byte(""))
 	fmt.Println(err)
 	return result
 }
 
-func (client *client) CallServiceInstance(appid string,
+func (client *Client) CallServiceInstance(appid string,
 	appkey string,
 	channel string,
 	method string,
@@ -684,14 +684,14 @@ func (client *client) CallServiceInstance(appid string,
 	return client.Exec(appid, method, api, param, contentType, files)
 }
 
-func (client *client) GetCurrentToken(appid, appkey, channel, alias string) string {
+func (client *Client) GetCurrentToken(appid, appkey, channel, alias string) string {
 	client.targetInfo = generateStackRow(appid, appkey, channel, alias, "")
 	claims := client.claimsForThisRequest()
 	client.makeToken(claims)
 	return client.token
 }
 
-func (client *client) UploadFile(serviceName string,
+func (client *Client) UploadFile(serviceName string,
 	api string,
 	files *fileStruct,
 	data map[string]interface{},

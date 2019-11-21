@@ -6,16 +6,16 @@ import (
 	"strconv"
 )
 
-type server struct {
+type Server struct {
 	token      *jwt.Token
 	tokenExist bool
 }
 
-var serverInstance = &server{tokenExist: false}
+var serverInstance = &Server{tokenExist: false}
 
 var tokenData = map[string]interface{}{}
 
-func GetServerInstance(header http.Header) (*server, *CommError) {
+func GetServerInstance(header http.Header) (*Server, *CommError) {
 	token1 := GetBearerToken(header)
 	if token1 != "" {
 		serverInstance.token, _ = jwt.Parse(token1, func(token *jwt.Token) (i interface{}, e error) {
@@ -30,7 +30,7 @@ func GetServerInstance(header http.Header) (*server, *CommError) {
 	return serverInstance,nil
 }
 
-func (server *server) GetTokenData() (map[string]interface{},*CommError) {
+func (server *Server) GetTokenData() (map[string]interface{},*CommError) {
 	if server.token == nil {
 		return nil,&CommError{204,"token is empty"}
 	}
@@ -48,7 +48,7 @@ func (server *server) GetTokenData() (map[string]interface{},*CommError) {
 	return tokenData,nil
 }
 
-func (server *server) GetAppkey() string {
+func (server *Server) GetAppkey() string {
 	if server.token != nil {
 		appkey,err:=server.token.Claims.(jwt.MapClaims)[TO_APPKEY_KEY].(string)
 		if err{
@@ -58,7 +58,7 @@ func (server *server) GetAppkey() string {
 	return ""
 }
 
-func (server *server) GetChannel() string {
+func (server *Server) GetChannel() string {
 	if server.token != nil {
 		channel,err:=server.token.Claims.(jwt.MapClaims)[TO_CHANNEL].(string)
 		if err{
@@ -73,7 +73,7 @@ func (server *server) GetChannel() string {
 	return ""
 }
 
-func (server *server) GetAccountId() string {
+func (server *Server) GetAccountId() string {
 	if server.token != nil {
 		accountId,err:=server.token.Claims.(jwt.MapClaims)[ACCOUNT_ID_KEY].(string)
 		if err{
@@ -83,7 +83,7 @@ func (server *server) GetAccountId() string {
 	return ""
 }
 
-func (server *server) GetSubOrgKey() string {
+func (server *Server) GetSubOrgKey() string {
 	if server.token != nil {
 		subOrgKey,err:=server.token.Claims.(jwt.MapClaims)[SUB_ORG_KEY_KEY].(string)
 		if err{
@@ -93,7 +93,7 @@ func (server *server) GetSubOrgKey() string {
 	return ""
 }
 
-func (server *server) GetUserInfo() map[string]string {
+func (server *Server) GetUserInfo() map[string]string {
 	if server.token != nil {
 		userInfo,err:= server.token.Claims.(jwt.MapClaims)[USER_INFO_KEY].(map[string]string)
 		if err{
@@ -103,7 +103,7 @@ func (server *server) GetUserInfo() map[string]string {
 	return nil
 }
 
-func (server *server) GetFromAppkey() string {
+func (server *Server) GetFromAppkey() string {
 	if server.token != nil {
 		fromAppkey,err:=server.token.Claims.(jwt.MapClaims)[FROM_APPKEY_KEY].(string)
 		if err{
@@ -112,7 +112,7 @@ func (server *server) GetFromAppkey() string {
 	}
 	return ""
 }
-func (server *server) GetFromChannel() string {
+func (server *Server) GetFromChannel() string {
 	if server.token != nil {
 		fromChannel,err:=server.token.Claims.(jwt.MapClaims)[TO_CHANNEL].(string)
 		if err{
@@ -126,7 +126,7 @@ func (server *server) GetFromChannel() string {
 	}
 	return ""
 }
-func (server *server) GetFromAppid() string {
+func (server *Server) GetFromAppid() string {
 	if server.token != nil{
 		fromAppid,err:=server.token.Claims.(jwt.MapClaims)[FROM_APPID_KEY].(string)
 		if err{
@@ -135,7 +135,7 @@ func (server *server) GetFromAppid() string {
 	}
 	return ""
 }
-func (server *server) GetCallStack() []map[string]string {
+func (server *Server) GetCallStack() []map[string]string {
 	if server.token != nil {
 		callStack,err:=server.token.Claims.(jwt.MapClaims)[CALL_STACK_KEY].([]map[string]string)
 		if err{
